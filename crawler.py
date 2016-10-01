@@ -14,40 +14,51 @@ class Feed(object):
     def __init__(self, parsedfeed):
         self.title = parsedfeed['feed']['title']
         self.link = parsedfeed['feed']['link']
-        self.subtitile = parsedfeed['feed']['subtitle']
+        self.subtitle = parsedfeed['feed']['subtitle']
 
 class Item(object):
     def __init__(self, item_dict, feed):
         try:
-            self.title = item_dict['title']
+            self.title = str(item_dict['title'])
         except:
             self.title = ""
         try:
-            self.link = item_dict['link']
+            self.link = str(item_dict['link'])
         except:
             self.link = ""
         try:
-            self.id = item_dict['id']
+            self.id = str(item_dict['id'])
         except:
-            self.id = hashlib.sha256(self.link.encode('ASCII')).hexdigest()
+            self.id = str(hashlib.sha256(self.link.encode('ASCII')).hexdigest())
         
         try:
-            self.published = item_dict['published']
+            self.published = (item_dict['published'])
         except:
             self.published = ""
         try:
-            self.updated = item_dict['updated']
+            self.updated = str(item_dict['updated'])
         except:
             self.updated = ""
         try:
-            self.summary = item_dict['summary']
+            self.summary = str(item_dict['summary'])
         except:
             self.summary = ""
         try:
-            self.content = item_dict['content']
+            self.content = str(item_dict['content'])
         except:
             self.content = ""
-        self.feed = feed
+        self.feed = { 'title': feed.title, 'link': feed.link, 'subtitle':
+                feed.subtitle}
+    def to_dict(self):
+        return {
+                'title': self.title,
+                'link': self.link,
+                'id': self.id,
+                'published': self.published,
+                'updated': self.updated,
+                'summary': self.summary,
+                'content':  self.content
+                }
 
 if __name__ == "__main__":
     server = Server(os.environ['COUCHURL'])
@@ -63,6 +74,7 @@ if __name__ == "__main__":
             itemstorage += [itm]
 
     for i in itemstorage:
+        database[i.id] = i.to_dict()
         print(i.title + "  | FROM | " + i.feed.title + " " + i.id)
         print("====================================")
 
