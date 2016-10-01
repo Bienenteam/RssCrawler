@@ -1,5 +1,8 @@
 #Web Crawler for receiving RSS/Atom feeds
 import feedparser
+from couchdb import Server
+import os
+import hashlib
 
 feedurls = []
 feedurls += [r'./test/example.xml']
@@ -20,13 +23,14 @@ class Item(object):
         except:
             self.title = ""
         try:
-            self.id = item_dict['id']
-        except:
-            self.id = ""
-        try:
             self.link = item_dict['link']
         except:
             self.link = ""
+        try:
+            self.id = item_dict['id']
+        except:
+            self.id = hashlib.sha256(self.link.encode('ASCII')).hexdigest()
+        
         try:
             self.published = item_dict['published']
         except:
@@ -46,6 +50,10 @@ class Item(object):
         self.feed = feed
 
 if __name__ == "__main__":
+    server = Server(os.environ['COUCHURL'])
+    database = server['simdata']
+
+    print("database name: " + database.name)
     for url in feedurls:
         parsedfeed = feedparser.parse(url)
         print(parsedfeed.feed.title)
@@ -55,6 +63,8 @@ if __name__ == "__main__":
             itemstorage += [itm]
 
     for i in itemstorage:
-        print(i.title + "  | FROM | " + i.feed.title)
+        print(i.title + "  | FROM | " + i.feed.title + " " + i.id)
         print("====================================")
+
+
 
