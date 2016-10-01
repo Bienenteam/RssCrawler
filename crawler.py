@@ -51,6 +51,8 @@ class Item(object):
                 feed.subtitle}
     def to_dict(self):
         return {
+                'type': 'item',
+                'schemaversion': 1,
                 'title': self.title,
                 'link': self.link,
                 'id': self.id,
