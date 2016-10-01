@@ -5,6 +5,7 @@ class Feed(object):
         self.url = feedinfo.value.get('url', '')
         self.name = feedinfo.value.get('name', '')
         self.id = feedinfo.value.get('_id', 'yee')
+        self.disabled = feedinfo.value.get('disable', False)
     def update_info(self, feedinfo):
         if feedinfo.title is not self.title:
             self.title = feedinfo.title

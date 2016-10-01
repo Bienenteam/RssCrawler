@@ -11,7 +11,7 @@ itemstorage = []
 
 if __name__ == "__main__":
     server = Server(os.environ['COUCHURL'])
-    database = server['simdata']
+    database = server['beehive']
     feedlist = []
     map_if_feed = '''
 function(doc) {
@@ -31,8 +31,10 @@ function(doc) {
 '''
 
     for row in database.query(map_if_feed):
-        feedlist += [Feed(row)]
-
+        f = Feed(row)
+        if not f.disabled:
+            feedlist += [f]
+    print(feedlist)
     print("database name: " + database.name)
 
     for feed in feedlist:
@@ -51,20 +53,18 @@ function(doc) {
         if len(res_item_id) is not 0:
             
             for rii in res_item_id:
-                try:
-                    #Hier habe ich eine feed id
-                    #Keine gleiche Feed ID
-                    if rii.feedId is not i.feedId:
+                #Hier habe ich eine feed id
+                #Keine gleiche Feed ID
+                if rii.feedId is not i.feedId:
+                    database.save(i.to_dict())
+                #Gleiche Feed ID
+                else:
+                    #Anderes Aenderungsdatum -> Update
+                    if rii.updated is not i.updated:
                         database.save(i.to_dict())
-                    else:
-                        #Gleiches Datum ueberpruefen
-                        if rii.updated is not i.updated:
-                            database.save(i.to_dict())
 
 
                     print(rii.feedId)
-                except:
-                    database.save(i.to_dict())
         #ID fehlt
         else:
             database.save(i.to_dict())
