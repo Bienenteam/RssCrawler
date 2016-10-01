@@ -34,12 +34,11 @@ function(doc) {
         f = Feed(row)
         if not f.disabled:
             feedlist += [f]
-    print(feedlist)
     print("database name: " + database.name)
+    print([x.name for x in feedlist])
 
     for feed in feedlist:
         parsedfeed = feedparser.parse(feed.url)
-        print(feed.title)
         #feed.update_info(parsedfeed)
 
         for entry in parsedfeed.entries:
@@ -52,19 +51,21 @@ function(doc) {
         #ID ist vorhanden
         if len(res_item_id) is not 0:
             
-            for rii in res_item_id:
-                #Hier habe ich eine feed id
-                #Keine gleiche Feed ID
-                if rii.feedId is not i.feedId:
-                    database.save(i.to_dict())
-                #Gleiche Feed ID
-                else:
-                    #Anderes Aenderungsdatum -> Update
-                    if rii.updated is not i.updated:
+            for res_in_row in res_item_id:
+                try:
+                    #Hier habe ich eine feed id
+                    #Keine gleiche Feed ID
+                    if res_in_row.doc.feedId is not i.feedId:
                         database.save(i.to_dict())
+                    #Gleiche Feed ID
+                    else:
+                        #Anderes Aenderungsdatum -> Update
+                        if res_in_row.updated is not i.updated:
+                            database.save(i.to_dict())
+                except:
+                    database.save(i.to_dict())
 
 
-                    print(rii.feedId)
         #ID fehlt
         else:
             database.save(i.to_dict())
