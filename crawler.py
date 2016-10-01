@@ -43,9 +43,11 @@ function(doc) {
 
         for entry in parsedfeed.entries:
             itm = Item(entry, feed)
+            print(itm.id + " / " + feed.name)
             itemstorage += [itm]
 
     for i in itemstorage:
+
         #Check keys before posting something new
         res_item_id = database.query(map_if_key_is_known, keys=[i.id])
         #ID ist vorhanden
@@ -63,7 +65,9 @@ function(doc) {
                         if res_in_row.updated is not i.updated:
                             database.save(i.to_dict())
                 except:
+            #        print("Some error " )
                     database.save(i.to_dict())
+                
 
 
         #ID fehlt
