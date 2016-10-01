@@ -25,7 +25,7 @@ function(doc) {
     map_if_key_is_known = '''
 function(doc) {
     if (doc.type === 'item') {
-        emit(doc.id, doc.feedId, doc.updated);
+        emit([doc.id, doc.feedId], doc.updated);
     }
 }
 '''
@@ -50,26 +50,10 @@ function(doc) {
 
         #Check keys before posting something new
         res_item_id = database.query(map_if_key_is_known, keys=[i.id])
+        #Kombination muss unique sein
+        if len(res_item_id) != 0:
+            #Ueberpruefen ob update Zeit unterschiedlich
+            pass
+        
+
         #ID ist vorhanden
-        if len(res_item_id) is not 0:
-            
-            for res_in_row in res_item_id:
-                try:
-                    #Hier habe ich eine feed id
-                    #Keine gleiche Feed ID
-                    if res_in_row.doc.feedId is not i.feedId:
-                        database.save(i.to_dict())
-                    #Gleiche Feed ID
-                    else:
-                        #Anderes Aenderungsdatum -> Update
-                        if res_in_row.updated is not i.updated:
-                            database.save(i.to_dict())
-                except:
-            #        print("Some error " )
-                    database.save(i.to_dict())
-                
-
-
-        #ID fehlt
-        else:
-            database.save(i.to_dict())
