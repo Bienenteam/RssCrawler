@@ -14,10 +14,9 @@ itemstorage = []
 class Feed(object):
     items = []
     def __init__(self, parsedfeed):
-        self.title = parsedfeed['feed']['title']
-        self.link = parsedfeed['feed']['link']
-        self.subtitle = parsedfeed['feed']['subtitle']
-        
+        self.title = parsedfeed.feed.get('title','')
+        self.link = parsedfeed.feed.get('link','')
+        self.subtitle = parsedfeed.feed.get('subtitle','')
 
 class Item(object):
     def __init__(self, item_dict, feed):
@@ -33,7 +32,7 @@ class Item(object):
             self.id = str(item_dict['id'])
         except:
             self.id = str(hashlib.sha256(self.link.encode('ASCII')).hexdigest())
-        
+
         try:
             self.published = (item_dict['published'])
         except:
@@ -80,11 +79,6 @@ if __name__ == "__main__":
             itemstorage += [itm]
 
     for i in itemstorage:
-#        database[i.id] = i.to_dict()
         database.save(i.to_dict())
-        #print(i['title'] + "  | FROM | " + i['feed']['title'] + " " + i.id)
-        #print("====================================")
-        
-
 
 
