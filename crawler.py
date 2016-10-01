@@ -5,18 +5,19 @@ import os
 import hashlib
 from uuid import uuid4
 
-feedurls = []
-feedurls += [r'./test/example.xml']
-feedurls += ['http://www.heise.de/newsticker/heise-atom.xml']
 
 itemstorage = []
 
 class Feed(object):
     items = []
-    def __init__(self, parsedfeed):
-        self.title = parsedfeed.feed.get('title','')
-        self.link = parsedfeed.feed.get('link','')
-        self.subtitle = parsedfeed.feed.get('subtitle','')
+    def __init__(self, feedinfo ):
+        self.title = feedinfo.value.get('title', 'No title')#['value']['title']
+        self.url = feedinfo.value.get('url', '')
+        self.name = feedinfo.value.get('name', '')
+        self.id = feedinfo.value.get('_id', 'yee')
+    def update_info(self, feedinfo):
+        if feedinfo.title is not self.title:
+            self.title = feedinfo.title
 
 class Item(object):
     def __init__(self, item_dict, feed):
@@ -49,13 +50,14 @@ class Item(object):
             self.content = str(item_dict['content'])
         except:
             self.content = ""
-        self.feed = { 'title': feed.title, 'link': feed.link, 'subtitle':
-                feed.subtitle}
+        self.feed = { 'title': feed.title, 'url': feed.url, 'name':
+                feed.name, 'id': feed.id}
     def to_dict(self):
         return {
                 '_id': uuid4().hex,
                 'type': 'item',
                 'schemaversion': 1,
+                'feedId': self.feed['id'],
                 'title': self.title,
                 'link': self.link,
                 'id': self.id,
@@ -68,17 +70,22 @@ class Item(object):
 if __name__ == "__main__":
     server = Server(os.environ['COUCHURL'])
     database = server['simdata']
+    feedlist = []
+    for row in database.view("all/if_feed"):
+        feedlist += [Feed(row)]
 
     print("database name: " + database.name)
-    for url in feedurls:
-        parsedfeed = feedparser.parse(url)
-        print(parsedfeed.feed.title)
-        feed = Feed(parsedfeed)
+
+    for feed in feedlist:
+        parsedfeed = feedparser.parse(feed.url)
+        print(feed.title)
+        #feed.update_info(parsedfeed)
+
         for entry in parsedfeed.entries:
             itm = Item(entry, feed)
             itemstorage += [itm]
 
-    for i in itemstorage:
-        database.save(i.to_dict())
-
+#    for i in itemstorage:
+#        database.save(i.to_dict())
+    
 
