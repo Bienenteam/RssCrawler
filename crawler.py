@@ -8,35 +8,53 @@ itemstorage = []
 
 class Feed(object):
     items = []
-    def __init__(self, title, link, subtitle):
-        self.title = title
-        self.link = link
-        self.subtitile = subtitle
+    def __init__(self, parsedfeed):
+        self.title = parsedfeed['feed']['title']
+        self.link = parsedfeed['feed']['link']
+        self.subtitile = parsedfeed['feed']['subtitle']
 
 class Item(object):
     def __init__(self, item_dict, feed):
-        self.title = item_dict['title']
-        #self.id = item_dict['id']
-        self.link = item_dict['link']
-        self.published = item_dict['published']
-        self.updated = item_dict['updated']
-        self.summary = item_dict['summary']
-#        self.content = item_dict['content']
+        try:
+            self.title = item_dict['title']
+        except:
+            self.title = ""
+        try:
+            self.id = item_dict['id']
+        except:
+            self.id = ""
+        try:
+            self.link = item_dict['link']
+        except:
+            self.link = ""
+        try:
+            self.published = item_dict['published']
+        except:
+            self.published = ""
+        try:
+            self.updated = item_dict['updated']
+        except:
+            self.updated = ""
+        try:
+            self.summary = item_dict['summary']
+        except:
+            self.summary = ""
+        try:
+            self.content = item_dict['content']
+        except:
+            self.content = ""
         self.feed = feed
 
 if __name__ == "__main__":
     for url in feedurls:
         parsedfeed = feedparser.parse(url)
         print(parsedfeed.feed.title)
-        feed = Feed(
-                parsedfeed['feed']['title'],
-                parsedfeed['feed']['link'],
-                parsedfeed['feed']['subtitle'])
-        for e in parsedfeed.entries:
-            i = Item(e, feed)
-            itemstorage += [i]
+        feed = Feed(parsedfeed)
+        for entry in parsedfeed.entries:
+            itm = Item(entry, feed)
+            itemstorage += [itm]
 
     for i in itemstorage:
-        print(i.title + " FROM " + i.feed.title)
+        print(i.title + "  | FROM | " + i.feed.title)
         print("====================================")
 
