@@ -3,9 +3,11 @@ import feedparser
 from couchdb import Server
 import os
 import hashlib
+from uuid import uuid4
 
 feedurls = []
 feedurls += [r'./test/example.xml']
+feedurls += ['http://www.heise.de/newsticker/heise-atom.xml']
 
 itemstorage = []
 
@@ -15,6 +17,7 @@ class Feed(object):
         self.title = parsedfeed['feed']['title']
         self.link = parsedfeed['feed']['link']
         self.subtitle = parsedfeed['feed']['subtitle']
+        
 
 class Item(object):
     def __init__(self, item_dict, feed):
@@ -51,6 +54,7 @@ class Item(object):
                 feed.subtitle}
     def to_dict(self):
         return {
+                '_id': uuid4().hex,
                 'type': 'item',
                 'schemaversion': 1,
                 'title': self.title,
@@ -76,9 +80,11 @@ if __name__ == "__main__":
             itemstorage += [itm]
 
     for i in itemstorage:
-        database[i.id] = i.to_dict()
-        print(i.title + "  | FROM | " + i.feed.title + " " + i.id)
-        print("====================================")
+#        database[i.id] = i.to_dict()
+        database.save(i.to_dict())
+        #print(i['title'] + "  | FROM | " + i['feed']['title'] + " " + i.id)
+        #print("====================================")
+        
 
 
 
