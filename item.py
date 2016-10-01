@@ -1,3 +1,6 @@
+from uuid import uuid4
+import hashlib
+
 class Item(object):
     def __init__(self, item_dict, feed):
         try:

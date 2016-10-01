@@ -2,8 +2,6 @@
 import feedparser
 from couchdb import Server
 import os
-import hashlib
-from uuid import uuid4
 from feed import Feed
 from item import Item
 
@@ -14,7 +12,17 @@ if __name__ == "__main__":
     server = Server(os.environ['COUCHURL'])
     database = server['simdata']
     feedlist = []
-    for row in database.view("all/if_feed"):
+    map_if_feed = '''
+function(doc) {
+
+    if( doc.type == "feed" ){
+        emit( doc.type , doc);
+    }
+
+}
+'''
+
+    for row in database.query(map_if_feed):
         feedlist += [Feed(row)]
 
     print("database name: " + database.name)
@@ -28,5 +36,5 @@ if __name__ == "__main__":
             itm = Item(entry, feed)
             itemstorage += [itm]
 
-#    for i in itemstorage:
-#        database.save(i.to_dict())
+    for i in itemstorage:
+        database.save(i.to_dict())
