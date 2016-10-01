@@ -7,64 +7,29 @@ from feed import Feed
 from item import Item
 
 
-itemstorage = []
-
 if __name__ == "__main__":
     server = Server(os.environ['COUCHURL'])
     database = server['simdata']
-    feedlist = []
-    map_if_feed = '''
+    map_feeds = '''
 function(doc) {
-
     if( doc.type == "feed" ){
-        emit( doc.type , doc);
-    }
-
-}
-'''
-    map_if_key_is_known = '''
-function(doc) {
-    if (doc.type === 'item') {
-        emit(doc.id, doc.feedId, doc.updated);
+        emit( doc._id , doc.url);
     }
 }
 '''
 
-    for row in database.query(map_if_feed):
-        feedlist += [Feed(row)]
-
-    print("database name: " + database.name)
-
-    for feed in feedlist:
-        parsedfeed = feedparser.parse(feed.url)
-        print(feed.title)
-        #feed.update_info(parsedfeed)
-
+    for row in database.query(map_feeds):
+        print("Feed: " + row.value)
+        parsedfeed = feedparser.parse(row.value)
         for entry in parsedfeed.entries:
-            itm = Item(entry, feed)
-            itemstorage += [itm]
-
-    for i in itemstorage:
-        #Check keys before posting something new
-        res_item_id = database.query(map_if_key_is_known, keys=[i.id])
-        #ID ist vorhanden
-        if len(res_item_id) is not 0:
-            
-            for rii in res_item_id:
-                try:
-                    #Hier habe ich eine feed id
-                    #Keine gleiche Feed ID
-                    if rii.feedId is not i.feedId:
-                        database.save(i.to_dict())
-                    else:
-                        #Gleiches Datum ueberpruefen
-                        if rii.updated is not i.updated:
-                            database.save(i.to_dict())
-
-
-                    print(rii.feedId)
-                except:
-                    database.save(i.to_dict())
-        #ID fehlt
-        else:
-            database.save(i.to_dict())
+            itm = Item(entry)
+            itm.setFeedId( row.id )
+            map_duplicates = 'function(doc) {if (doc.type == "item" && doc.feedId == "' + row.id + '" && doc.id == "' + itm.id + '") emit(doc.id, doc.updated);}'
+            dup_query = database.query(map_duplicates)
+            for entry in dup_query: # Check for duplicates
+                if entry.value != itm.updated: # ...and wether they are outdated.
+                    #TODO update this entry
+                    print('Update this!')
+            if len(dup_query) == 0: # save a new entry if there are no duplicates
+                database.save(itm.to_dict())
+                print('  New Entry found: ' + itm.title)
