@@ -1,4 +1,3 @@
-# RssCrawler
 RSS Crawler in Python
 =========================
 
