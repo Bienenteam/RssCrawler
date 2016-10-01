@@ -1,5 +1,6 @@
 #Web Crawler for receiving RSS/Atom feeds
 import feedparser
+import couchdb
 from couchdb import Server
 import os
 from feed import Feed
@@ -21,6 +22,13 @@ function(doc) {
 
 }
 '''
+    map_if_key_is_known = '''
+function(doc) {
+    if (doc.type === 'item') {
+        emit(doc.id, doc.feedId, doc.updated);
+    }
+}
+'''
 
     for row in database.query(map_if_feed):
         feedlist += [Feed(row)]
@@ -37,4 +45,26 @@ function(doc) {
             itemstorage += [itm]
 
     for i in itemstorage:
-        database.save(i.to_dict())
+        #Check keys before posting something new
+        res_item_id = database.query(map_if_key_is_known, keys=[i.id])
+        #ID ist vorhanden
+        if len(res_item_id) is not 0:
+            
+            for rii in res_item_id:
+                try:
+                    #Hier habe ich eine feed id
+                    #Keine gleiche Feed ID
+                    if rii.feedId is not i.feedId:
+                        database.save(i.to_dict())
+                    else:
+                        #Gleiches Datum ueberpruefen
+                        if rii.updated is not i.updated:
+                            database.save(i.to_dict())
+
+
+                    print(rii.feedId)
+                except:
+                    database.save(i.to_dict())
+        #ID fehlt
+        else:
+            database.save(i.to_dict())
