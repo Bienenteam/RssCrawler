@@ -49,11 +49,14 @@ function(doc) {
     for i in itemstorage:
 
         #Check keys before posting something new
-        res_item_id = database.query(map_if_key_is_known, keys=[i.id])
+        res_item_feed = database.query(map_if_key_is_known,
+                keys=[i.id,i.feed['id']])
+
         #Kombination muss unique sein
-        if len(res_item_id) != 0:
+        if len(res_item_feed) != 0:
             #Ueberpruefen ob update Zeit unterschiedlich
             pass
-        
+        else:
+            database.save(i.to_dict())
 
         #ID ist vorhanden
