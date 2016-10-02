@@ -9,7 +9,6 @@ from item import Item
 if __name__ == "__main__":
     server = Server(os.environ['COUCHURL'])
     database = server['beehive']
-    feedlist = []
     map_feeds = '''
 function(doc) {
     if( doc.type == "feed" && doc.disabled != true ){
@@ -17,10 +16,11 @@ function(doc) {
     }
 }
 '''
-
+#    bulk_storage = []
     for row in database.query(map_feeds):
         print("Feed: " + row.value)
         parsedfeed = feedparser.parse(row.value)
+        last = []
         for entry in parsedfeed.entries:
             itm = Item(entry)
             itm.setFeedId( row.id )
@@ -33,4 +33,13 @@ function(doc) {
                     pass
             if len(dup_query) == 0: # save a new entry if there are no duplicates
                 database.save(itm.to_dict())
+#                last.append(itm.to_dict())
                 print('  New Entry found: ' + itm.title)
+#        bulk_storage.append( last)
+#    while len(bulk_storage) > 0 :
+#        for feed_in_bulk in range(0, len(bulk_storage)):
+#            if len(bulk_storage[feed_in_bulk]) > 0:
+#                print(bulk_storage[feed_in_bulk].pop())
+#            else:
+#                print("Empty")
+#                bulk_storage.pop(feed_in_bulk)
