@@ -2,7 +2,7 @@ from uuid import uuid4
 import hashlib
 
 class Item(object):
-    def __init__(self, item_dict, feed):
+    def __init__(self, item_dict):
         try:
             self.title = str(item_dict['title'])
         except:
@@ -32,14 +32,20 @@ class Item(object):
             self.content = str(item_dict['content'])
         except:
             self.content = ""
-        self.feed = { 'title': feed.title, 'url': feed.url, 'name':
-                feed.name, 'id': feed.id}
+        try:
+            self.feedId = str(item_dict['feedId'])
+        except:
+            self.feedId = ""
+
+    def setFeedId(self, feedId):
+        self.feedId = feedId
+
     def to_dict(self):
         return {
                 '_id': uuid4().hex,
                 'type': 'item',
-                'schemaversion': 1,
-                'feedId': self.feed['id'],
+                'schemaversion': 2,
+                'feedId': self.feedId,
                 'title': self.title,
                 'link': self.link,
                 'id': self.id,
